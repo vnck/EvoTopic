@@ -56,7 +56,8 @@ class Documents:
     self.stopwords = set(stopwords.words('english'))
 
   def load(self, path):
-    self.df = self.df.append(pd.DataFrame({'raw':['hello world time','mom dad boy','tiger lions bear','hawk eagle 23 penguin']}))
+    # TODO: implement loading and store to self.df dataframe
+    pass
 
   def __preprocessing_pipeline(self, doc):
     doc = doc.lower()
