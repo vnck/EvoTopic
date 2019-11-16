@@ -16,6 +16,9 @@ class Gene:
   b : list
     1D array of length equal to vocab_size, that expresses our a-priori belief for each word.
 
+  fitness : float
+    fitness score of the gene
+
   vocab_size : int
     the size of the vocabulary of corpus.
 
@@ -33,6 +36,12 @@ class Gene:
   mutate()
     mutates values of n, a, and b.
 
+  set_fitness()
+    sets the fitness score of a gene.
+
+  get_fitness()
+    returns the fitness score of a gene.
+
   """
 
   n = 0
@@ -41,6 +50,7 @@ class Gene:
   a = []
   b = []
   vocab_size = 0
+  fitness = -1
 
   def __init__(self, n=None, a=None, b=None):
     """
@@ -85,3 +95,9 @@ class Gene:
       size of vocabulary of corpus.
     """
     Gene.vocab_size = vocab_size
+
+  def mutate(self):
+    pass
+
+  def set_fitness(self,f):
+    self.fitness = f
