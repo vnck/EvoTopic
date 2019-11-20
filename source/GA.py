@@ -1,4 +1,4 @@
-import source.Gene
+from gene import Gene
 
 class GA:
   """

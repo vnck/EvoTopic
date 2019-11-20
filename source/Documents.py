@@ -55,9 +55,8 @@ class Documents:
     self.lemmatizer = WordNetLemmatizer()
     self.stopwords = set(stopwords.words('english'))
 
-  def load(self, path):
-    # TODO: implement loading and store to self.df dataframe
-    pass
+  def load(self, text):
+    self.df['raw'] = text
 
   def __preprocessing_pipeline(self, doc):
     doc = doc.lower()
@@ -92,7 +91,7 @@ class Documents:
     return list(self.df['tokens'])
 
   def get_doc_size(self):
-    return len(self.dictionary.num_docs)
+    return self.dictionary.num_docs
 
   def get_vocab_size(self):
     return len(self.dictionary.num_nnz)

@@ -1,15 +1,21 @@
-import source.Documents
-import source.GA
+from documents import Documents
+from ga import GA
+import pandas as pd
 
-data_path = ''
+data_path = '../data/github_issues.csv'
+
+df = pd.read_csv(data_path)
 
 docs = Documents()
-docs.load(data_path)
+docs.load(list(df['description']))
 docs.vectorise()
 
-GA = GA(docs,pop_size=100,fitness_budget=10000)
-GA.initialise_population()
-GA.evolve()
+print(docs.get_doc_size())
+print(docs.get_vectors())
 
-fittest_individual = GA.get_fittest()
-fittest_individual.evaluate()
+# GA = GA(docs,pop_size=100,fitness_budget=10000)
+# GA.initialise_population()
+# GA.evolve()
+
+# fittest_individual = GA.get_fittest()
+# fittest_individual.evaluate()
