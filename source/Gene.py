@@ -96,8 +96,26 @@ class Gene:
     """
     Gene.vocab_size = vocab_size
 
-  def mutate(self):
-    pass
+  def mutate(self, mutation_rate):
+
+    if(random.random() < mutation_rate):
+      # mutate n
+      self.n = self.n + random.randint(-3, 3)
+
+      # mutate a
+      genes_a = random.sample(self.a, 2)
+      p1 = genes_a[0]
+      p2 = genes_a[1]
+      self.a[genes_a.index(p1)] = p2
+      self.a[genes_a.index(p2)] = p1
+
+      # mutate b
+      genes_b = random.sample(self.b, 2)
+      w1 = genes_b[0]
+      w2 = genes_b[1]
+      self.b[genes_b.index(w1)] = w2
+      self.b[genes_b.index(w2)] = w1
+
 
   def set_fitness(self,f):
     self.fitness = f
