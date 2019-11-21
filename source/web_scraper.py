@@ -41,23 +41,11 @@ def get_title_description(url):
         title = soup.title.get_text()
         title_desc_small_list.append(title)
 
-        #DONT NEED ANYMORE
-        #get the top description that is not the full description
-        #top_description = soup.find_all('meta', attrs={'name':'description'})
-        #description_1 = top_description[0].get('content')
-        #print("description1:" ,description_1)
-
-        #TODO: get the bottom full description
         bottom_description = soup.find_all('task-lists')
         description = bottom_description[0].get_text().replace("\n", " ")
         title_desc_small_list.append(description)
     return title_desc_small_list
-        #DONT NEED?: compare top and bottom to make sure its the correct description for the issue.
-        #TODO: add to list
-
-        #TODO: write to csv
-
-    #raise Exception(f"There was an error retrieving contents at {url}")
+       
 
 def write_to_csv(big_list):
     ''' 
