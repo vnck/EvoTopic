@@ -1,5 +1,6 @@
 import random
 import numpy as np
+import main
 
 class Gene:
   """
@@ -44,9 +45,9 @@ class Gene:
 
   """
 
-  n = 0
-  N_MIN = 0
-  N_MAX = 201
+  n = 1
+  N_MIN = 1
+  N_MAX = 1
   a = []
   b = []
   vocab_size = 0
@@ -96,25 +97,71 @@ class Gene:
     """
     Gene.vocab_size = vocab_size
 
+  @staticmethod
+  def set_doc_size(doc_size):
+    """Sets the value of doc_size. Must be set to a positive integer before a Gene instance can be created.
+
+    Parameters
+    ----------
+    doc_size : int
+      size of documents of corpus.
+    """
+    Gene.N_MAX = doc_size
+
   def mutate(self, mutation_rate):
-
     if(random.random() < mutation_rate):
-      # mutate n
-      self.n = self.n + random.randint(-3, 3)
+      """ mutate n """
+      self.n = random.randint(1, self.N_MAX)
 
-      # mutate a
-      genes_a = random.sample(self.a, 2)
-      p1 = genes_a[0]
-      p2 = genes_a[1]
-      self.a[genes_a.index(p1)] = p2
-      self.a[genes_a.index(p2)] = p1
+      """ mutate a """
+      # Randomly sample probabilities of topics in a
+      genes_a = random.sample(self.a, random.randint(2, len(self.a)))
+      
+      # Calculate the sum of probabilities of topics sampled
+      sum_p_a = 0
+      for i in genes_a:
+        sum_p_a += self.a[genes_a.index(i)]
+      
+      # Redistribute the probabilities among the topics sampled
+      leftover_p_a = sum_p_a
+      count_a = 0
+      for i in genes_a:
+        if count_a == len(genes_a) - 1:
+          # Assign the leftover probability to the last one sampled
+          self.a[genes_a.index(i)] = leftover_p_a
+        else:  
+          # Generate random float between 0 and 1
+          ra = random.random()
+          # Assign the value in range of sum_p_a to the ith probability of topic sampled
+          self.a[genes_a.index(i)] = leftover_p_a * ra
+          # Update leftover_p_a
+          leftover_p_a -= self.a[genes_a.index(i)]
+        count_a += 1
 
-      # mutate b
-      genes_b = random.sample(self.b, 2)
-      w1 = genes_b[0]
-      w2 = genes_b[1]
-      self.b[genes_b.index(w1)] = w2
-      self.b[genes_b.index(w2)] = w1
+      """ mutate b """
+      # Randomly sample probabilities of words in b
+      genes_b = random.sample(self.b, random.randint(2, len(self.b)))
+      
+      # Calculate the sum of sampled probabilities of words
+      sum_p_b = 0
+      for i in genes_b:
+        sum_p_b += self.b[genes_b.index(i)]
+      
+      # Redistribute the probabilities among the sampled probabilities of words 
+      leftover_p_b = sum_p_b
+      count_b = 0
+      for i in genes_b:
+        if count_b == len(genes_b) - 1:
+          # Assign the leftover probability to the last one sampled
+          self.b[genes_b.index(i)] = leftover_p_b
+        else:  
+          # Generate random float between 0 and 1
+          rb = random.random()
+          # Assign the value in range of sum_p_a to the ith probability of word sampled
+          self.b[genes_b.index(i)] = leftover_p_b * rb
+          # Update leftover_p_b
+          leftover_p_b -= self.b[genes_b.index(i)]
+        count_b += 1
 
 
   def set_fitness(self,f):
