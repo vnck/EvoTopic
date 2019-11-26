@@ -1,4 +1,6 @@
 from gene import Gene
+from random import *
+
 
 class GA:
   """
@@ -62,7 +64,9 @@ class GA:
 
   def initialise_population(self):
     # TODO: random initialisation of population
-    pass
+    cnt = 0
+    while(cnt<self.population_size):
+      self.population.push_back(Gene())
 
   def evolve(self):
     while(self.fitness_budget > 0):
@@ -74,6 +78,7 @@ class GA:
   
   def selection(self):
     # TODO: selection from current population to populate new population
+    
     pass
   
   def crossover(self):
@@ -82,6 +87,8 @@ class GA:
   
   def mutate(self):
     # TODO: calls mutate() for each gene in population
+    for p in self.population:
+      p.mutate()
     pass
 
   def update_population_fitness(self):
