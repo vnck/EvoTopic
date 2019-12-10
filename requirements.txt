@@ -2,4 +2,5 @@ scikit-learn
 NumPy
 SciPy
 joblib
+pandas
 gensim
