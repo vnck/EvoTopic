@@ -8,3 +8,13 @@
 
 ## Class Diagram
 ![Class Diagram](img/class-diagram.png)
+
+## How to run
+pip3 is required
+'''
+sudo apt-get install python3-pip
+'''
+Install requirements.txt
+'''
+pip3 install -r requirements.txt
+'''
