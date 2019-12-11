@@ -7,6 +7,8 @@ from gensim.corpora.dictionary import Dictionary
 from gensim.models import LdaModel
 import gensim
 from tqdm import tqdm
+from gensim.models.coherencemodel import CoherenceModel
+import math
 
 
 MUTATION_RATIO = 0.1
@@ -66,6 +68,9 @@ class GA:
 
   def __init__(self,docs,dictionary,pop_size=100,fitness_budget=10000):
     # initial setting
+    if (pop_size <= 5):
+      print('Population size must be at least > 5, setting population size to 10.')
+      pop_size = 10
     self.corpus = docs
     self.docs_size = len(self.corpus)
     self.dictionary = dictionary
@@ -83,11 +88,9 @@ class GA:
   def initialise_population(self):
     """Random initialisation of population"""
     print('Initialising Population...')
-    for i in range(self.population_size):
-      # Random generation
-      parent = Gene()
-      self.population.append(parent) 
+    self.population = [Gene() for i in range(self.population_size)]
     self.update_population_fitness()
+    print('{}: Fitness: {} Fitness Budget: {} '.format(self.iteration,self.fitness,self.fitness_budget))
 
   def evolve(self):
     print('Evolving Poppulation...')
@@ -125,28 +128,29 @@ class GA:
     crossover_part = random.choice(["n", "a", "b"])
     if crossover_part == "n":
       # Average of two genes
-      new_gene.n = (gene1.n+gene2.n)/2
+      new_gene.n = math.ceil((gene1.n+gene2.n)/2)
     elif crossover_part == "a":
       # Choose random point 
-      crossover_point = randint(0, len(gene1.a)-1)
+      crossover_point = random.randint(0, len(gene1.a)-1)
       new_gene.a = gene1.a[:crossover_point]+gene2.a[crossover_point:]
     else:
       # Choose random point 
-      crossover_point = randint(0, len(gene2.b)-1)
+      crossover_point = random.randint(0, len(gene2.b)-1)
       new_gene.b = gene1.b[:crossover_point]+gene2.b[crossover_point:]
     return new_gene
 
   def crossover(self):
     """Generate new population using crossover"""
-    while(len(self.population)<self.population_size):
+    while(len(self.population) < self.population_size):
       #Randomly select two genes
-      gene1, gene2 = random.sample(self.population[:int(self.population_size*SELECT_RATIO)], 2)
-      new_gene = self.crossover2genes(gene1, gene2)
+      # gene1, gene2 = random.sample(self.population[:int(self.population_size*SELECT_RATIO)], 2)
+      gene1, gene2 = random.sample(self.population, 2)
+      new_gene = self.__crossover2genes(gene1, gene2)
       self.population.append(new_gene)
 
   def mutate(self):
-    for p in self.population:
-      p.mutate(MUTATION_RATIO)
+    new_population = [p.mutate(MUTATION_RATIO) for p in self.population]
+    self.population = new_population
 
   def update_population_fitness(self):
     # TODO: calls calculate_fitness on all genes in the new population and updates the fittest individual
@@ -159,26 +163,40 @@ class GA:
 
   def calculate_fitness(self,gene):
     # Make LDA model 
+    assert gene.n == len(gene.a), "n: {}, a:{}".format(gene.n, len(gene.a))
+    assert len(gene.b) == self.vocab_size, "b: {}, v:{}".format(len(gene.b), self.vocab_size)
     lda = LdaModel(corpus = self.corpus,
+                   id2word = self.dictionary,
                    num_topics = gene.n,
                    alpha = gene.a,
                    eta = gene.b)
     # Classify docs using LDA model
-    labels = []
-    word_cntLst = []
-    for text in self.corpus:
-      # Make label list
-      topic_probLst = lda.get_document_topics(text)
-      if (len(topic_probLst) == 0):
-        print(text)
-      labels.append(max(topic_probLst, key=lambda tup: tup[1])[0])
-      # Make word count list
-      words = [0]*self.vocab_size
-      for tup in text:
-        words[tup[0]] = tup[1]
-      word_cntLst.append(words[:])
+    cm = CoherenceModel(model=lda, corpus=self.corpus, coherence='u_mass')
     # Calculate silhouette score 
-    return metrics.silhouette_score(word_cntLst, labels, metric='cosine')
+    return cm.get_coherence()
+
+  # def calculate_fitness(self,gene):
+  #   # Make LDA model 
+  #   lda = LdaModel(corpus = self.corpus,
+  #                  num_topics = gene.n,
+  #                  alpha = gene.a,
+  #                  eta = gene.b)
+  #   # Classify docs using LDA model
+  #   labels = []
+  #   word_cntLst = []
+  #   for text in self.corpus:
+  #     # Make label list
+  #     topic_probLst = lda.get_document_topics(text)
+  #     if (len(topic_probLst) == 0):
+  #       print(text)
+  #     labels.append(max(topic_probLst, key=lambda tup: tup[1])[0])
+  #     # Make word count list
+  #     words = [0]*self.vocab_size
+  #     for tup in text:
+  #       words[tup[0]] = tup[1]
+  #     word_cntLst.append(words[:])
+  #   # Calculate silhouette score 
+  #   return metrics.silhouette_score(word_cntLst, labels, metric='cosine')
 
   def get_fittest(self):
     return self.fittest
