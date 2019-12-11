@@ -2,6 +2,7 @@ from requests import get
 from requests.exceptions import RequestException
 from contextlib import closing
 from bs4 import BeautifulSoup
+from tqdm import tqdm
 import csv
 
 def get_html(url):
@@ -81,7 +82,7 @@ def get_all_issues():
                 all_links.append(link.get('href'))
 
     big_data_list = []
-    for link in all_links:
+    for link in tqdm(all_links):
         print(link)
         one_issue_url = "http://github.com"+str(link)
         #print("HERES THE URL:", one_issue_url)

@@ -80,7 +80,7 @@ class Documents:
     self.dictionary = Dictionary(self.get_tokens())
     # self.dictionary.filter_extremes(no_below=20, no_above=0.5)
     self.df['vectors'] = self.df['tokens'].apply(self.dictionary.doc2bow)
-
+    self.df = self.df[self.df['vectors'].map(len) > 0]
   def get_raw(self):
     return list(self.df['raw'])
   
