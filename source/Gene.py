@@ -157,13 +157,16 @@ class Gene:
     elif (random.random() < mutation_rate):
       """ maybe mutate a if n does not change """
       print('n:{} == a:{}'.format(self.n, len(self.a)))
-      n_choice = random.sample([i for i in range(len(self.a))], random.randrange(1,len(self.a)))
-      leftover_prob = 0.0
-      for i in sorted(n_choice, reverse = True):
-        leftover_prob += self.a.pop(i)
-      spare_prob = self.partition_float(1 - sum(self.a), len(n_choice))
-      for p in spare_prob:
-        self.a.insert(n_choice.pop(random.randrange(len(n_choice))),p)
+      if len(self.a) != 1:
+        n_choice = random.sample([i for i in range(len(self.a))], random.randrange(1,len(self.a)))
+        leftover_prob = 0.0
+        for i in sorted(n_choice, reverse = True):
+          leftover_prob += self.a.pop(i)
+        spare_prob = self.partition_float(1 - sum(self.a), len(n_choice))
+        for p in spare_prob:
+          self.a.insert(n_choice.pop(random.randrange(len(n_choice))),p)
+      else:
+        print ("No mutation since a has only one element!")
 
       # # Randomly sample probabilities of topics in a
       # genes_a = random.sample(self.a, random.randint(2, len(self.n)))
