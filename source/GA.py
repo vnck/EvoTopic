@@ -1,11 +1,12 @@
 from Gene import Gene
-from random import *
+import random 
 from sklearn import metrics
 from sklearn.metrics import pairwise_distances
 from gensim.test.utils import common_texts
 from gensim.corpora.dictionary import Dictionary
 from gensim.models import LdaModel
 import gensim
+from tqdm import tqdm
 
 
 MUTATION_RATIO = 0.1
@@ -149,7 +150,7 @@ class GA:
 
   def update_population_fitness(self):
     # TODO: calls calculate_fitness on all genes in the new population and updates the fittest individual
-    for p in self.population:
+    for p in tqdm(self.population):
       p.fitness = self.calculate_fitness(p)
       # Update best fitness
       if p.fitness > self.fitness:
