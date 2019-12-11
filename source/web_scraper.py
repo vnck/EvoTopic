@@ -53,7 +53,7 @@ def write_to_csv(big_list):
         a single CSV data file.
     '''
     headers = ["title", "description"]
-    filename = "github_issues.csv"
+    filename = "github_issues_test.csv"
     try:
         with open(filename, "w") as csvFile:
             writer = csv.writer(csvFile)
@@ -67,8 +67,8 @@ def write_to_csv(big_list):
 def get_all_issues():
     
     all_links = []
-    for i in range(1,29):
-        url = "https://github.com/facebook/react/issues?page="+str(i)+"&q=is%3Aissue+is%3Aopen"
+    for i in range(1,313):
+        url = "https://github.com/facebook/react/issues?page="+str(i)+"&q=is%3Aissue+is%3Aclosed"
         print(url)
         response = get_html(url)
 
@@ -84,7 +84,7 @@ def get_all_issues():
     for link in all_links:
         print(link)
         one_issue_url = "http://github.com"+str(link)
-        print("HERES THE URL:", one_issue_url)
+        #print("HERES THE URL:", one_issue_url)
         title_desc = get_title_description(one_issue_url)
         big_data_list.append(title_desc)
 
