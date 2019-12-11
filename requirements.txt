@@ -3,4 +3,6 @@ NumPy
 SciPy
 joblib
 pandas
+nltk
+beautifulsoup4
 gensim
