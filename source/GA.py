@@ -4,6 +4,7 @@ from sklearn import metrics
 from sklearn.metrics import pairwise_distances
 from gensim.test.utils import common_texts
 from gensim.corpora.dictionary import Dictionary
+from gensim.models import LdaModel
 import gensim
 
 
@@ -76,23 +77,27 @@ class GA:
     self.bestGene = None
     Gene.set_vocab_size(self.vocab_size)
     Gene.set_doc_size(self.docs_size)
+    self.iteration = 0
 
   def initialise_population(self):
-    """Random initialisation of population"""  
+    """Random initialisation of population"""
+    print('Initialising Population...')
     for i in range(self.population_size):
       # Random generation
       parent = Gene()
-      parent.set_vocab_size(self.vocab_size)
-      parent.set_doc_size(self.docs_size)
-      self.population.push_back(parent) 
+      self.population.append(parent) 
     self.update_population_fitness()
 
   def evolve(self):
+    print('Evolving Poppulation...')
     while(self.fitness_budget > 0):
       self.selection()
       self.crossover()
       self.mutate()
       self.update_population_fitness()
+      self.iteration += 1
+      self.fitness_budget -= 1
+      print('{}: Fitness: {} Fitness Budget: {} '.format(self.iteration,self.fitness,self.fitness_budget))
   
   def selection(self):
     """Top 20% of population will be selected"""
@@ -145,7 +150,7 @@ class GA:
   def update_population_fitness(self):
     # TODO: calls calculate_fitness on all genes in the new population and updates the fittest individual
     for p in self.population:
-      p.fitness = self.calcuate_fitness(self, p)
+      p.fitness = self.calculate_fitness(p)
       # Update best fitness
       if p.fitness > self.fitness:
         self.fitness = p.fitness
@@ -158,11 +163,13 @@ class GA:
                    alpha = gene.a,
                    eta = gene.b)
     # Classify docs using LDA model
-    labels = list()
-    word_cntLst = list()
+    labels = []
+    word_cntLst = []
     for text in self.corpus:
       # Make label list
       topic_probLst = lda.get_document_topics(text)
+      if (len(topic_probLst) == 0):
+        print(text)
       labels.append(max(topic_probLst, key=lambda tup: tup[1])[0])
       # Make word count list
       words = [0]*self.vocab_size
