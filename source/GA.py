@@ -62,19 +62,20 @@ class GA:
 
   """
 
-  def __init__(self,docs,pop_size=100,fitness_budget=10000):
+  def __init__(self,docs,dictionary,pop_size=100,fitness_budget=10000):
     # initial setting
-    self.docs = docs
-    self.docs_size = len(self.docs)
-    self.dictionary = Dictionary(docs)
-    self.vocab_size = len(self.dictionary) 
-    self.corpus = [self.dictionary.doc2bow(text) for text in self.docs]
+    self.corpus = docs
+    self.docs_size = len(self.corpus)
+    self.dictionary = dictionary
+    self.vocab_size = len(self.dictionary)
     self.population = []
     self.population_size = pop_size
     self.fitness_budget = fitness_budget
     self.fittest = self.calculate_fitness
     self.fitness = -1.0
     self.bestGene = None
+    Gene.set_vocab_size(self.vocab_size)
+    Gene.set_doc_size(self.docs_size)
 
   def initialise_population(self):
     """Random initialisation of population"""  

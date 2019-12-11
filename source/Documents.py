@@ -93,6 +93,9 @@ class Documents:
   def get_doc_size(self):
     return self.dictionary.num_docs
 
+  def get_dictionary(self):
+    return self.dictionary
+
   def get_vocab_size(self):
     return len(self.dictionary.num_nnz)
 
