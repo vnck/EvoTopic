@@ -10,12 +10,12 @@
 ![Class Diagram](img/class-diagram.png)
 
 ## How to run
-Minimum python3 version required is 3.6.2
-pip3 is required
+- Minimum python3 version required is 3.6.2
+- pip3 is required
 ```
 sudo apt-get install python3-pip
 ```
-Install requirements.txt
+- Install requirements.txt
 ```
 pip3 install -r requirements.txt
 ```
