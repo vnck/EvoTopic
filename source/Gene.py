@@ -143,7 +143,8 @@ class Gene:
       # randomly add probabilities
       n_diff = self.n - len(self.a)
       for i in range(n_diff):
-        self.a.insert(random.randrange(len(self.a)), random.random())
+        # self.a.insert(random.randrange(len(self.a)), random.random())
+        self.a.insert(random.randrange(len(self.a)), random.uniform(0.00000001, 0.99999999))
         print(len(self.a))
       # randomly remove probabilities until sum to 1
       n_distribute = random.randrange(len(self.a))
@@ -209,7 +210,8 @@ class Gene:
           self.b[genes_b.index(i)] = leftover_p_b
         else:  
           # Generate random float between 0 and 1
-          rb = random.random()
+          # rb = random.random()
+          rb = random.uniform(0.00000001, 0.99999999)
           # Assign the value in range of sum_p_a to the ith probability of word sampled
           self.b[genes_b.index(i)] = leftover_p_b * rb
           # Update leftover_p_b
