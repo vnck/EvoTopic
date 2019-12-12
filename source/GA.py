@@ -9,6 +9,8 @@ import gensim
 from tqdm import tqdm
 from gensim.models.coherencemodel import CoherenceModel
 import math
+import pprint
+import numpy as np
 
 
 MUTATION_RATIO = 0.1
@@ -70,7 +72,6 @@ class GA:
     # initial setting
     if (pop_size <= 5):
       print('Population size must be at least > 5, setting population size to 10.')
-      pop_size = 10
     self.corpus = docs
     self.docs_size = len(self.corpus)
     self.dictionary = dictionary
@@ -89,9 +90,12 @@ class GA:
     """Random initialisation of population"""
     print('Initialising Population...')
     self.population = [Gene() for i in range(self.population_size)]
+    print("BEFORE CALCULATE FITNESS")
+    for g in self.population :
+      print("a = ",len(g.a), "b = ", len(g.b))
     self.update_population_fitness()
     print('{}: Fitness: {} Fitness Budget: {} '.format(self.iteration,self.fitness,self.fitness_budget))
-
+    print('{}: Gene.n: {} Gene.a: {} Gene.b: {} '.
   def evolve(self):
     print('Evolving Poppulation...')
     while(self.fitness_budget > 0):
@@ -113,30 +117,30 @@ class GA:
 
   def __crossover2genes(self, gene1, gene2):
     """Crossover two genes"""
-    new_gene = Gene()
-    # Flip coin to decide victim
-    coin = random.choice([True, False])
-    if coin:
-      new_gene.n = gene1.n
-      new_gene.a = gene1.a
-      new_gene.b = gene1.b
-    else:
-      new_gene.n = gene2.n
-      new_gene.a = gene2.a
-      new_gene.b = gene2.b
+    new_gene_n = 0
+    new_gene_a = []
+    new_gene_b = []
     # Which part do you want to crossover?  
-    crossover_part = random.choice(["n", "a", "b"])
+    crossover_part = random.choice(["n", "b"])
     if crossover_part == "n":
       # Average of two genes
-      new_gene.n = math.ceil((gene1.n+gene2.n)/2)
-    elif crossover_part == "a":
-      # Choose random point 
-      crossover_point = random.randint(0, len(gene1.a)-1)
-      new_gene.a = gene1.a[:crossover_point]+gene2.a[crossover_point:]
+      new_gene_n = math.ceil((gene1.n+gene2.n)/2)
+      for i in range(new_gene_n):
+        if ((len(gene1.a)-1) < i):
+          new_gene_a.append(gene2.a[i])
+        elif ((len(gene2.a)-1) < i):
+          new_gene_a.append(gene1.a[i])
+        else :
+          new_gene_a.append((gene1.a[i]+gene2.a[i])/2)
+      new_gene_b = gene1.b[:]
     else:
-      # Choose random point 
-      crossover_point = random.randint(0, len(gene2.b)-1)
-      new_gene.b = gene1.b[:crossover_point]+gene2.b[crossover_point:]
+      # Average of two genes
+      for i in range(self.vocab_size):
+        new_gene_b.append((gene1.b[i]+gene2.b[i])/2)
+      new_gene_n = gene1.n
+      new_gene_a = gene1.a[:]
+    new_gene = Gene(new_gene_n, new_gene_a, new_gene_b)
+    print("new_gene.a = ", len(new_gene.a), "new_gene.b = ", len(new_gene.b))
     return new_gene
 
   def crossover(self):
@@ -145,11 +149,27 @@ class GA:
       #Randomly select two genes
       # gene1, gene2 = random.sample(self.population[:int(self.population_size*SELECT_RATIO)], 2)
       gene1, gene2 = random.sample(self.population, 2)
+      print("gene1.a = ", len(gene1.a), "gene1.b = ", len(gene1.b))
+      print("gene2.a = ", len(gene2.a), "gene2.b = ", len(gene2.b))
       new_gene = self.__crossover2genes(gene1, gene2)
       self.population.append(new_gene)
 
   def mutate(self):
+    for p in self.population:
+      if (0 in p.a):
+        print("Before Mutation: Zero in p.a")
+      if (0 in p.b):
+        print("Before mutation: Zero in p.b")
     new_population = [p.mutate(MUTATION_RATIO) for p in self.population]
+    for p in new_population:
+      if (0 in p.a):
+        print("After Mutation: Zero in p.a")
+        while(0 in p.a):
+          p.a[p.a.index(0)] = 1
+      if (0 in p.b):
+        print("After mutation: Zero in p.b")
+        while(0 in p.b):
+          p.b[p.b.index(0)] = 1
     self.population = new_population
 
   def update_population_fitness(self):
@@ -160,7 +180,7 @@ class GA:
       if p.fitness > self.fitness:
         self.fitness = p.fitness
         self.bestGene = p
-
+  '''
   def calculate_fitness(self,gene):
     # Make LDA model 
     assert gene.n == len(gene.a), "n: {}, a:{}".format(gene.n, len(gene.a))
@@ -172,31 +192,38 @@ class GA:
                    eta = gene.b)
     # Classify docs using LDA model
     cm = CoherenceModel(model=lda, corpus=self.corpus, coherence='u_mass')
-    # Calculate silhouette score 
-    return cm.get_coherence()
-
-  # def calculate_fitness(self,gene):
-  #   # Make LDA model 
-  #   lda = LdaModel(corpus = self.corpus,
-  #                  num_topics = gene.n,
-  #                  alpha = gene.a,
-  #                  eta = gene.b)
-  #   # Classify docs using LDA model
-  #   labels = []
-  #   word_cntLst = []
-  #   for text in self.corpus:
-  #     # Make label list
-  #     topic_probLst = lda.get_document_topics(text)
-  #     if (len(topic_probLst) == 0):
-  #       print(text)
-  #     labels.append(max(topic_probLst, key=lambda tup: tup[1])[0])
-  #     # Make word count list
-  #     words = [0]*self.vocab_size
-  #     for tup in text:
-  #       words[tup[0]] = tup[1]
-  #     word_cntLst.append(words[:])
-  #   # Calculate silhouette score 
-  #   return metrics.silhouette_score(word_cntLst, labels, metric='cosine')
+    # Calculate silhouette score
+    result = cm.get_coherence()
+    return result
+  '''
+  def calculate_fitness(self,gene):
+    # Make LDA model 
+    lda = LdaModel(corpus = self.corpus,
+                   num_topics = gene.n,
+                   alpha = gene.a,
+                   eta = gene.b)
+    # Classify docs using LDA model
+    labels = []
+    word_cntLst = []
+    if(len(self.corpus)<2):
+      return -1
+    for text in self.corpus:
+      # Make label list
+      topic_probLst = lda.get_document_topics(text)
+      if (len(topic_probLst) == 0):
+        print("LDA is fucked")
+        print("sum of Eta = ", sum(gene.b))
+        return -1
+      labels.append(max(topic_probLst, key=lambda tup: tup[1])[0])
+      # Make word count list
+      words = [0]*self.vocab_size
+      for tup in text:
+        words[tup[0]] = tup[1]
+      word_cntLst.append(words[:])
+    # Calculate silhouette score
+    if(len(np.unique(labels)) < 2):
+      return -1
+    return metrics.silhouette_score(word_cntLst, labels, metric='cosine')
 
   def get_fittest(self):
     return self.fittest
