@@ -90,12 +90,10 @@ class GA:
     """Random initialisation of population"""
     print('Initialising Population...')
     self.population = [Gene() for i in range(self.population_size)]
-    print("BEFORE CALCULATE FITNESS")
-    for g in self.population :
-      print("a = ",len(g.a), "b = ", len(g.b))
     self.update_population_fitness()
     print('{}: Fitness: {} Fitness Budget: {} '.format(self.iteration,self.fitness,self.fitness_budget))
-    print('{}: Gene.n: {} Gene.a: {} Gene.b: {} '.
+    print('{}: Gene.n: {} Gene.a: {} Gene.b: {} '.format(self.iteration, self.bestGene.n, len(self.bestGene.a), len(self.bestGene.b)))
+  
   def evolve(self):
     print('Evolving Poppulation...')
     while(self.fitness_budget > 0):
@@ -106,6 +104,7 @@ class GA:
       self.iteration += 1
       self.fitness_budget -= 1
       print('{}: Fitness: {} Fitness Budget: {} '.format(self.iteration,self.fitness,self.fitness_budget))
+      print('{}: Gene.n: {} Gene.a: {} Gene.b: {} '.format(self.iteration, self.bestGene.n, len(self.bestGene.a), len(self.bestGene.b)))
   
   def selection(self):
     """Top 20% of population will be selected"""
@@ -140,7 +139,6 @@ class GA:
       new_gene_n = gene1.n
       new_gene_a = gene1.a[:]
     new_gene = Gene(new_gene_n, new_gene_a, new_gene_b)
-    print("new_gene.a = ", len(new_gene.a), "new_gene.b = ", len(new_gene.b))
     return new_gene
 
   def crossover(self):
@@ -149,8 +147,6 @@ class GA:
       #Randomly select two genes
       # gene1, gene2 = random.sample(self.population[:int(self.population_size*SELECT_RATIO)], 2)
       gene1, gene2 = random.sample(self.population, 2)
-      print("gene1.a = ", len(gene1.a), "gene1.b = ", len(gene1.b))
-      print("gene2.a = ", len(gene2.a), "gene2.b = ", len(gene2.b))
       new_gene = self.__crossover2genes(gene1, gene2)
       self.population.append(new_gene)
 
@@ -165,11 +161,11 @@ class GA:
       if (0 in p.a):
         print("After Mutation: Zero in p.a")
         while(0 in p.a):
-          p.a[p.a.index(0)] = 1
+          p.a[p.a.index(0)] = 0.01
       if (0 in p.b):
         print("After mutation: Zero in p.b")
         while(0 in p.b):
-          p.b[p.b.index(0)] = 1
+          p.b[p.b.index(0)] = 0.01
     self.population = new_population
 
   def update_population_fitness(self):
