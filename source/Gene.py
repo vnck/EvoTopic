@@ -113,7 +113,7 @@ class Gene:
       return [a]
     pieces = []
     for i in range(n-1):
-      pieces.append(random.uniform(0.00000001,a-sum(pieces)))
+      pieces.append(random.uniform(0.00000001,a-sum(pieces)-0.00000001))
     pieces.append(a-sum(pieces))
     return pieces
 
