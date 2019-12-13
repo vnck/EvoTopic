@@ -7,14 +7,14 @@ data_path = '../data/github_issues.csv'
 df = pd.read_csv(data_path)
 
 docs = Documents()
-docs.load(list(df['description'])[:50])
+docs.load(list(df['description'])[:100])
 docs.vectorise()
 
-print(docs.get_doc_size())
+print("No. of documents loaded: {}".format(docs.get_doc_size()))
 
-GA = GA(docs.get_vectors(), docs.get_dictionary(),pop_size=10,fitness_budget=10000)
+GA = GA(docs.get_vectors(), docs.get_dictionary(),pop_size=20,fitness_budget=10000)
 GA.initialise_population()
 GA.evolve()
+model = GA.get_model()
 
 # fittest_individual = GA.get_fittest()
-# fittest_individual.evaluate()

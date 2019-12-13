@@ -73,16 +73,27 @@ class Documents:
         doc.append(token)
     return doc
 
+  def __argmax(self,ls):
+    return max(ls, key = lambda item: item[1])
+
   def vectorise(self):
     self.df['tokens'] = self.df['raw'].apply(self.__preprocessing_pipeline)
     self.bigrams = Phrases(self.get_tokens(), min_count=20)
     self.df['tokens'] = self.df['tokens'].apply(self.__add_bigrams)
     self.dictionary = Dictionary(self.get_tokens())
-    # self.dictionary.filter_extremes(no_below=20, no_above=0.5)
+    self.dictionary.filter_extremes(no_below=20, no_above=0.5)
     self.df['vectors'] = self.df['tokens'].apply(self.dictionary.doc2bow)
     self.df = self.df[self.df['vectors'].map(len) > 0]
-  def get_raw(self):
-    return list(self.df['raw'])
+
+  def assign_labels(self, model):
+    self.df['topic'] = self.df['vectors'].apply(lambda x : self.__argmax(model.get_document_topics(x))[0])
+    self.df['topic_confidence'] = self.df['vectors'].apply(lambda x : self.__argmax(model.get_document_topics(x))[1])
+  
+  def get_doc_text(self,label=-1):
+    if label == -1:
+      return self.df['raw']
+    else:
+      return self.df[self.df['topic'] == label]['raw']
   
   def get_vectors(self):
     return list(self.df['vectors'])
