@@ -130,7 +130,7 @@ class Gene:
       leftover_prob = 0.0
       for i in range(n_diff):
         leftover_prob += self.a.pop(random.randrange(len(self.a)))
-        print(len(self.a))
+      # print(len(self.a))
       # randomly add probabilities until sum to 1
       n_distribute = random.randrange(len(self.a))
       spare_prob = self.partition_float(leftover_prob, n_distribute)
@@ -145,7 +145,6 @@ class Gene:
       for i in range(n_diff):
         # self.a.insert(random.randrange(len(self.a)), random.random())
         self.a.insert(random.randrange(len(self.a)), random.uniform(0.00000001, 0.99999999))
-        print(len(self.a))
       # randomly remove probabilities until sum to 1
       n_distribute = random.randrange(len(self.a))
       spare_prob = self.partition_float(1 - sum(self.a), n_distribute)
@@ -200,27 +199,25 @@ class Gene:
       sum_p_b = 0
       for i in genes_b:
         sum_p_b += self.b[genes_b.index(i)]
-      
       # Redistribute the probabilities among the sampled probabilities of words 
       leftover_p_b = sum_p_b
       count_b = 0
       for i in genes_b:
-        if count_b == len(genes_b) - 1:
-          # Assign the leftover probability to the last one sampled
-          self.b[genes_b.index(i)] = leftover_p_b
-        else:  
-          # Generate random float between 0 and 1
-          # rb = random.random()
-          rb = random.uniform(0.00000001, 0.99999999)
-          # Assign the value in range of sum_p_a to the ith probability of word sampled
-          self.b[genes_b.index(i)] = leftover_p_b * rb
-          # Update leftover_p_b
-          leftover_p_b -= self.b[genes_b.index(i)]
+        # if count_b == len(genes_b) - 1:
+        # # Assign the leftover probability to the last one sampled
+        #  self.b[genes_b.index(i)] = leftover_p_b
+        # else:  
+        # Generate random float between 0 and 1
+        # rb = random.random()
+        rb = random.uniform(0.00000001, 1)
+        # Assign the value in range of sum_p_a to the ith probability of word sampled
+        self.b[genes_b.index(i)] = rb
         count_b += 1
-
+      self.b = [float(i)/sum(self.b) for i in self.b]
     assert self.n == len(self.a), "n: {}, a:{}".format(self.n, len(self.a))
     assert len(self.b) == self.vocab_size, "b: {}, v:{}".format(len(self.b), self.vocab_size)
     new_gene = copy.deepcopy(self)
     return new_gene
+
   def set_fitness(self,f):
     self.fitness = f
