@@ -1,4 +1,4 @@
-from Gene import Gene
+from Gene2 import Gene
 import random 
 from sklearn import metrics
 from sklearn.metrics import pairwise_distances
@@ -69,7 +69,7 @@ class GA:
 
   """
 
-  def __init__(self,docs,dictionary,pop_size=100,fitness_budget=10000):
+  def __init__(self,docs,dictionary,pop_size=100,fitness_budget=10000, objective='silhouette'):
     # initial setting
     self.corpus = docs
     self.docs_size = len(self.corpus)
@@ -83,6 +83,8 @@ class GA:
     self.fitness = -999.0
     self.bestGene = Gene()
     self.iteration = 0
+    assert objective == 'coherence' or objective == 'silhouette', "Objective must be either: 'silhouette' or 'cohesion'"
+    self.objective = objective
 
   def initialise_population(self):
     """Random initialisation of population"""
@@ -102,8 +104,12 @@ class GA:
       self.iteration += 1
       self.fitness_budget -= 1
       # print('{}: Gene.n: {} Gene.a: {} Gene.b: {} '.format(self.iteration, self.bestGene.n, len(self.bestGene.a), len(self.bestGene.b)))
-      if round(self.fitness,15) == 0:
-        break
+      if self.objective == 'coherence':
+        if round(self.fitness,15) == 0:
+          break
+      elif self.objective == 'silhouette':
+        if round(self.fitness,15) == 1:
+          break
   
   def selection(self):
     """Top 20% of population will be selected"""
@@ -153,126 +159,59 @@ class GA:
       self.population.append(new_gene)
 
   def mutate(self):
-<<<<<<< HEAD
-    # for p in self.population:
-      # if (0 in p.a):
-      #   print("Before Mutation: Zero in p.a")
-      # if (0 in p.b):
-      #   print("Before mutation: Zero in p.b")
     new_population = [p.mutate(MUTATION_RATIO) for p in self.population]
-    for p in new_population:
-      if (0 in p.a):
-        # print("After Mutation: Zero in p.a")
-        while(0 in p.a):
-          p.a[p.a.index(0)] = 0.01
-      if (0 in p.b):
-        # print("After mutation: Zero in p.b")
-        while(0 in p.b):
-          p.b[p.b.index(0)] = 0.01
-=======
-    new_population = []
-    for p in self.population:
-      new_p = p.mutate(MUTATION_RATIO)
-      if (0 in p.a):
-        print("After Mutation: Zero in p.a")
-      if (0 in p.b):
-        print("After Mutation: Zero in p.b")
-      new_population.append(new_p)
->>>>>>> 737a1ec9493e2f434ecf8774ab9384fee7ab535b
     self.population = new_population
 
   def update_population_fitness(self):
     # calls calculate_fitness on all genes in the new population and updates the fittest individual
-    pop_fitness = 0.0
+    pop_fitness = self.population[0].fitness
     for p in tqdm(self.population):
       # p.fitness = abs(self.calculate_fitness(p))
       p.fitness = self.calculate_fitness(p)
       # Update best fitness
-      # if p.fitness < self.fitness:
       if p.fitness > self.fitness:
         pop_fitness = p.fitness
         self.bestGene = p
-    self.fitness = pop_fitness
+        self.fitness = pop_fitness
     print('{}: Fitness: {:.15f}, Best Fitness: {:.15f}, Num Topics: {}, Fitness Budget: {} '.format(self.iteration,pop_fitness,self.fitness,self.bestGene.n,self.fitness_budget))
 
   def calculate_fitness(self,gene):
-    # Make LDA model 
-    # assert gene.n == len(gene.a), "n: {}, a:{}".format(gene.n, len(gene.a))
-    # assert len(gene.b) == self.vocab_size, "b: {}, v:{}".format(len(gene.b), self.vocab_size)
+    # Make LDA model
     lda = LdaModel(corpus = self.corpus,
                    id2word = self.dictionary,
                    num_topics = gene.n,
                    alpha = gene.a,
                    eta = gene.b)
-    # Classify docs using LDA model
-    cm = CoherenceModel(model=lda, corpus=self.corpus, coherence='u_mass')
-    # Calculate silhouette score
-    result = cm.get_coherence()
-    return result
-<<<<<<< HEAD
+    
+    if self.objective == 'coherence':
+      cm = CoherenceModel(model=lda, corpus=self.corpus, coherence='u_mass')
+      result = cm.get_coherence()
 
-  # def calculate_fitness(self,gene):
-  #   # Make LDA model 
-  #   lda = LdaModel(corpus = self.corpus,
-  #                  id2word = self.dictionary,
-  #                  num_topics = gene.n,
-  #                  alpha = gene.a,
-  #                  eta = gene.b)
-  #   # Classify docs using LDA model
-  #   labels = []
-  #   word_cntLst = []
-  #   if(len(self.corpus)<2):
-  #     return -1
-  #   for text in self.corpus:
-  #     # Make label list
-  #     topic_probLst = lda.get_document_topics(text)
-  #     if (len(topic_probLst) == 0):
-  #       # print("LDA is fucked")
-  #       print("sum of Eta: ", sum(gene.b))
-  #       print("sum of Alpha: ", sum(gene.a))
-  #       return -1
-  #     labels.append(max(topic_probLst, key=lambda tup: tup[1])[0])
-  #     # Make word count list
-  #     words = [0]*self.vocab_size
-  #     for tup in text:
-  #       words[tup[0]] = tup[1]
-  #     word_cntLst.append(words[:])
-  #   # Calculate silhouette score
-  #   if(len(np.unique(labels)) < 2):
-  #     return -1
-  #   return metrics.silhouette_score(word_cntLst, labels, metric='cosine')
-=======
-  '''
-  def calculate_fitness(self,gene):
-    # Make LDA model 
-    lda = LdaModel(corpus = self.corpus,
-                   num_topics = gene.n,
-                   alpha = gene.a,
-                   eta = gene.b)
-    # Classify docs using LDA model
-    labels = []
-    word_cntLst = []
-    if(len(self.corpus)<2):
-      return -1
-    for text in self.corpus:
-      # Make label list
-      topic_probLst = lda.get_document_topics(text)
-      if (len(topic_probLst) == 0):
-        print("LDA is fucked")
-        if (0 in gene.b) :
-          print("calculate fitness: Zero in b")
+    elif self.objective == 'silhouette':
+      labels = []
+      word_cntLst = []
+      if(len(self.corpus)<2):
         return -1
-      labels.append(max(topic_probLst, key=lambda tup: tup[1])[0])
-      # Make word count list
-      words = [0]*self.vocab_size
-      for tup in text:
-        words[tup[0]] = tup[1]
-      word_cntLst.append(words[:])
-    # Calculate silhouette score
-    if(len(np.unique(labels)) < 2):
-      return -1
-    return metrics.silhouette_score(word_cntLst, labels, metric='cosine')
->>>>>>> 737a1ec9493e2f434ecf8774ab9384fee7ab535b
+      for text in self.corpus:
+        # Make label list
+        topic_probLst = lda.get_document_topics(text)
+        if (len(topic_probLst) == 0):
+          print("LDA is fucked")
+          if (0 in gene.b) :
+            print("calculate fitness: Zero in b")
+          return -1
+        labels.append(max(topic_probLst, key=lambda tup: tup[1])[0])
+        # Make word count list
+        words = [0]*self.vocab_size
+        for tup in text:
+          words[tup[0]] = tup[1]
+        word_cntLst.append(words[:])
+      # Calculate silhouette score
+      if(len(np.unique(labels)) < 2):
+        return -1
+      result = metrics.silhouette_score(word_cntLst, labels, metric='cosine')
+
+    return result
 
   def get_fittest(self):
     return self.bestGene
