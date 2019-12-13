@@ -122,9 +122,7 @@ class Gene:
   def mutate(self, mr):
     if (random.random() < mr):
       self.n = random.randint(self.N_MIN, self.N_MAX)
-      if self.n > len(self.a):
-        self.a = np.random.dirichlet(np.ones(self.n), size=1)[0].tolist()
-      elif self.n < len(self.a):
+      if self.n != len(self.a):
         self.a = np.random.dirichlet(np.ones(self.n), size=1)[0].tolist()
     elif (random.random() < mr):
       choices = random.sample([i for i in range(len(self.a))], random.randrange(int(len(self.a)/2)))
