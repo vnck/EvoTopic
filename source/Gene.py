@@ -109,6 +109,7 @@ class Gene:
     Gene.N_MAX = int(doc_size/2)
 
   def partition_float(self, a, n):
+    assert a > 0, "Gene.py partition_float: a should be positive number a= {}".format(a)
     if n == 1:
       return [a]
     pieces = []
@@ -220,6 +221,7 @@ class Gene:
   #     """ mutate n """
   #     self.n = random.randint(self.N_MIN, self.N_MAX)
     
+<<<<<<< HEAD
   #   """ then mutate a """
   #   if len(self.a) > self.n:
   #     # print('n:{} < a:{}'.format(self.n, len(self.a)))
@@ -267,10 +269,77 @@ class Gene:
 
   #     # # Randomly sample probabilities of topics in a
   #     # genes_a = random.sample(self.a, random.randint(2, len(self.n)))
+=======
+    """ then mutate a """
+    if len(self.a) > self.n:
+      # print('n:{} < a:{}'.format(self.n, len(self.a)))
+      # randomly drop probabilities
+      n_diff = len(self.a) - self.n
+      leftover_prob = 0.0
+      for i in range(n_diff):
+        leftover_prob += self.a.pop(random.randrange(len(self.a)))
+      # print(len(self.a))
+      # randomly add probabilities until sum to 1
+      n_distribute = random.randrange(len(self.a))
+      spare_prob = self.partition_float(leftover_prob, n_distribute)
+      for p in spare_prob:
+        idx = random.randrange(len(self.a))
+        self.a[idx] += p
+      # print("Gene.py case a > n : sum of self.a = ", sum(self.a))
+
+    elif len(self.a) < self.n:
+      # print('n:{} > a:{}'.format(self.n, len(self.a)))
+      # randomly remove probabilities from original
+      n_diff = self.n - len(self.a)
+      remove_portion = random.random()
+      leftover_prob = 0
+      for i in range(len(self.a)):
+        leftover_prob += self.a[i]*remove_portion
+        self.a[i] = self.a[i]*(1-remove_portion)
+      # redistribute leftover_prob
+      spare_prob = self.partition_float(leftover_prob, n_diff)
+      # append self.a
+      self.a += spare_prob
+      '''
+      # randomly add probabilities
+      n_diff = self.n - len(self.a)
+      for i in range(n_diff):
+        # self.a.insert(random.randrange(len(self.a)), random.random())
+        self.a.insert(random.randrange(len(self.a)), random.uniform(0.00000001, 0.99999999))
+      # randomly remove probabilities until sum to 1
+      n_distribute = random.randrange(len(self.a))
+      spare_prob = self.partition_float(sum(self.a) - 1, n_distribute)
+      for p in spare_prob:
+        idx = random.randrange(len(self.a))
+        while(self.a[idx] - p <= 0):
+          idx = random.randrange(len(self.a))
+        self.a[idx] -= p
+      '''
+      # print("Gene.py case a < n : sum of self.a = ", sum(self.a))
+        
+
+    elif (random.random() < mutation_rate):
+      """ maybe mutate a if n does not change """
+      # print('n:{} == a:{}'.format(self.n, len(self.a)))
+      if len(self.a) != 1:
+        n_choice = random.sample([i for i in range(len(self.a))], random.randrange(1,len(self.a)))
+        leftover_prob = 0.0
+        for i in sorted(n_choice, reverse = True):
+          leftover_prob += self.a.pop(i)
+        spare_prob = self.partition_float(1 - sum(self.a), len(n_choice))
+        for p in spare_prob:
+          self.a.insert(n_choice.pop(random.randrange(len(n_choice))),p)
+      else:
+        print ("No mutation since a has only one element!")
+
+      # # Randomly sample probabilities of topics in a
+      # genes_a = random.sample(self.a, random.randint(2, len(self.n)))
+>>>>>>> 737a1ec9493e2f434ecf8774ab9384fee7ab535b
       
   #     # # Calculate the sum of probabilities of topics sampled
   #     # sum_p_a = sum([self.a[genes_a.index(i)] for i in genes_a])
       
+<<<<<<< HEAD
   #     # # Redistribute the probabilities among the topics sampled
   #     # leftover_p_a = sum_p_a
   #     # count_a = 0
@@ -340,6 +409,42 @@ class Gene:
 
   #   new_gene = copy.deepcopy(self)
   #   return new_gene
+=======
+      # # Redistribute the probabilities among the topics sampled
+      # leftover_p_a = sum_p_a
+      # count_a = 0
+      # for i in genes_a:
+      #   if count_a == len(genes_a) - 1:
+      #     # Assign the leftover probability to the last one sampled
+      #     self.a[genes_a.index(i)] = leftover_p_a
+      #   else:  
+      #     # Generate random float between 0 and 1
+      #     ra = random.random()
+      #     # Assign the value in range of sum_p_a to the ith probability of topic sampled
+      #     self.a[genes_a.index(i)] = leftover_p_a * ra
+      #     # Update leftover_p_a
+      #     leftover_p_a -= self.a[genes_a.index(i)]
+      #   count_a += 1
+
+    if(random.random() < mutation_rate):
+      """ maybe mutate b """
+      # Randomly sample probabilities of words in b
+      genes_b = random.sample(self.b, random.randint(2, len(self.b)))
+      # Calculate the sum of sampled probabilities of words
+      sum_p_b = sum(genes_b)
+      # Redistribute the probabilities among the sampled probabilities of words 
+      distribute_list = []
+      for i in range(len(genes_b)):
+        distribute_list.append(random.random())
+      distribute_list = [float(i)/sum(distribute_list) for i in distribute_list]
+      for i in range(len(genes_b)):
+        self.b[self.b.index(genes_b[i])] = distribute_list[i]*sum_p_b
+    
+    assert self.n == len(self.a), "n: {}, a:{}".format(self.n, len(self.a))
+    assert len(self.b) == self.vocab_size, "b: {}, v:{}".format(len(self.b), self.vocab_size)
+    new_gene = copy.deepcopy(self)
+    return new_gene
+>>>>>>> 737a1ec9493e2f434ecf8774ab9384fee7ab535b
 
   def set_fitness(self,f):
     self.fitness = f

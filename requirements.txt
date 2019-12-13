@@ -4,5 +4,6 @@ SciPy
 joblib
 pandas
 nltk
+tqdm
 beautifulsoup4
 gensim

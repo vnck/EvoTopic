@@ -14,7 +14,7 @@ import numpy as np
 import pyLDAvis.gensim
 
 
-MUTATION_RATIO = 0.1
+MUTATION_RATIO = 0.3
 SELECT_RATIO = 0.2
 
 class GA:
@@ -137,6 +137,9 @@ class GA:
         new_gene_b.append((gene1.b[i]+gene2.b[i])/2)
       new_gene_n = gene1.n
       new_gene_a = gene1.a[:]
+    # normalization
+    new_gene_a = [float(i)/sum(new_gene_a) for i in new_gene_a]
+    new_gene_b = [float(i)/sum(new_gene_b) for i in new_gene_b]
     new_gene = Gene(new_gene_n, new_gene_a, new_gene_b)
     return new_gene
 
@@ -150,6 +153,7 @@ class GA:
       self.population.append(new_gene)
 
   def mutate(self):
+<<<<<<< HEAD
     # for p in self.population:
       # if (0 in p.a):
       #   print("Before Mutation: Zero in p.a")
@@ -165,6 +169,16 @@ class GA:
         # print("After mutation: Zero in p.b")
         while(0 in p.b):
           p.b[p.b.index(0)] = 0.01
+=======
+    new_population = []
+    for p in self.population:
+      new_p = p.mutate(MUTATION_RATIO)
+      if (0 in p.a):
+        print("After Mutation: Zero in p.a")
+      if (0 in p.b):
+        print("After Mutation: Zero in p.b")
+      new_population.append(new_p)
+>>>>>>> 737a1ec9493e2f434ecf8774ab9384fee7ab535b
     self.population = new_population
 
   def update_population_fitness(self):
@@ -195,6 +209,7 @@ class GA:
     # Calculate silhouette score
     result = cm.get_coherence()
     return result
+<<<<<<< HEAD
 
   # def calculate_fitness(self,gene):
   #   # Make LDA model 
@@ -226,6 +241,38 @@ class GA:
   #   if(len(np.unique(labels)) < 2):
   #     return -1
   #   return metrics.silhouette_score(word_cntLst, labels, metric='cosine')
+=======
+  '''
+  def calculate_fitness(self,gene):
+    # Make LDA model 
+    lda = LdaModel(corpus = self.corpus,
+                   num_topics = gene.n,
+                   alpha = gene.a,
+                   eta = gene.b)
+    # Classify docs using LDA model
+    labels = []
+    word_cntLst = []
+    if(len(self.corpus)<2):
+      return -1
+    for text in self.corpus:
+      # Make label list
+      topic_probLst = lda.get_document_topics(text)
+      if (len(topic_probLst) == 0):
+        print("LDA is fucked")
+        if (0 in gene.b) :
+          print("calculate fitness: Zero in b")
+        return -1
+      labels.append(max(topic_probLst, key=lambda tup: tup[1])[0])
+      # Make word count list
+      words = [0]*self.vocab_size
+      for tup in text:
+        words[tup[0]] = tup[1]
+      word_cntLst.append(words[:])
+    # Calculate silhouette score
+    if(len(np.unique(labels)) < 2):
+      return -1
+    return metrics.silhouette_score(word_cntLst, labels, metric='cosine')
+>>>>>>> 737a1ec9493e2f434ecf8774ab9384fee7ab535b
 
   def get_fittest(self):
     return self.bestGene
