@@ -1,4 +1,4 @@
-from Gene2 import Gene
+from Gene import Gene
 import random 
 from sklearn import metrics
 from sklearn.metrics import pairwise_distances
@@ -13,6 +13,9 @@ import pprint
 import numpy as np
 import pyLDAvis.gensim
 
+
+import warnings
+warnings.filterwarnings("error")
 
 MUTATION_RATIO = 0.3
 SELECT_RATIO = 0.2
@@ -167,7 +170,10 @@ class GA:
     pop_fitness = self.population[0].fitness
     for p in tqdm(self.population):
       # p.fitness = abs(self.calculate_fitness(p))
-      p.fitness = self.calculate_fitness(p)
+      try:
+        p.fitness = self.calculate_fitness(p)
+      except RuntimeWarning:
+        p.fitness = -1
       # Update best fitness
       if p.fitness > self.fitness:
         pop_fitness = p.fitness
@@ -180,8 +186,7 @@ class GA:
     lda = LdaModel(corpus = self.corpus,
                    id2word = self.dictionary,
                    num_topics = gene.n,
-                   alpha = gene.a,
-                   eta = gene.b)
+                   alpha = gene.a)
     
     if self.objective == 'coherence':
       cm = CoherenceModel(model=lda, corpus=self.corpus, coherence='u_mass')
@@ -197,6 +202,9 @@ class GA:
         topic_probLst = lda.get_document_topics(text)
         if (len(topic_probLst) == 0):
           print("LDA is fucked")
+          print("GA.py gene.a = ", gene.a)
+          if (0 in gene.a) :
+            print("calculate fitness: Zero in a")
           if (0 in gene.b) :
             print("calculate fitness: Zero in b")
           return -1
