@@ -109,12 +109,19 @@ class Gene:
     Gene.N_MAX = doc_size
 
   def partition_float(self, a, n):
+    assert a > 0, "Gene.py partition_float: a should be positive number a= {}".format(a)
     if n == 1:
       return [a]
     pieces = []
-    for i in range(n-1):
-      pieces.append(random.uniform(0.00000001,a-sum(pieces)-0.00000001))
-    pieces.append(a-sum(pieces))
+    for i in range(n):
+      # pieces.append(random.uniform(0.0001,a-sum(pieces)-0.0001))
+      pieces.append(random.uniform(0.0001, 1))
+    # pieces.append(a-sum(pieces))
+    # normalize pieces
+    pieces = [float(i)/sum(pieces) for i in pieces]
+    # set sum of pieces to a
+    for i in range(n):
+      pieces[i] = pieces[i]*a
     return pieces
 
   def mutate(self, mutation_rate):
@@ -124,7 +131,7 @@ class Gene:
     
     """ then mutate a """
     if len(self.a) > self.n:
-      print('n:{} < a:{}'.format(self.n, len(self.a)))
+      # print('n:{} < a:{}'.format(self.n, len(self.a)))
       # randomly drop probabilities
       n_diff = len(self.a) - self.n
       leftover_prob = 0.0
@@ -137,9 +144,22 @@ class Gene:
       for p in spare_prob:
         idx = random.randrange(len(self.a))
         self.a[idx] += p
+      # print("Gene.py case a > n : sum of self.a = ", sum(self.a))
 
     elif len(self.a) < self.n:
-      print('n:{} > a:{}'.format(self.n, len(self.a)))
+      # print('n:{} > a:{}'.format(self.n, len(self.a)))
+      # randomly remove probabilities from original
+      n_diff = self.n - len(self.a)
+      remove_portion = random.random()
+      leftover_prob = 0
+      for i in range(len(self.a)):
+        leftover_prob += self.a[i]*remove_portion
+        self.a[i] = self.a[i]*(1-remove_portion)
+      # redistribute leftover_prob
+      spare_prob = self.partition_float(leftover_prob, n_diff)
+      # append self.a
+      self.a += spare_prob
+      '''
       # randomly add probabilities
       n_diff = self.n - len(self.a)
       for i in range(n_diff):
@@ -147,16 +167,19 @@ class Gene:
         self.a.insert(random.randrange(len(self.a)), random.uniform(0.00000001, 0.99999999))
       # randomly remove probabilities until sum to 1
       n_distribute = random.randrange(len(self.a))
-      spare_prob = self.partition_float(1 - sum(self.a), n_distribute)
+      spare_prob = self.partition_float(sum(self.a) - 1, n_distribute)
       for p in spare_prob:
         idx = random.randrange(len(self.a))
-        if self.a[idx] - p <= 0:
+        while(self.a[idx] - p <= 0):
           idx = random.randrange(len(self.a))
         self.a[idx] -= p
+      '''
+      # print("Gene.py case a < n : sum of self.a = ", sum(self.a))
+        
 
     elif (random.random() < mutation_rate):
       """ maybe mutate a if n does not change """
-      print('n:{} == a:{}'.format(self.n, len(self.a)))
+      # print('n:{} == a:{}'.format(self.n, len(self.a)))
       if len(self.a) != 1:
         n_choice = random.sample([i for i in range(len(self.a))], random.randrange(1,len(self.a)))
         leftover_prob = 0.0
@@ -194,26 +217,16 @@ class Gene:
       """ maybe mutate b """
       # Randomly sample probabilities of words in b
       genes_b = random.sample(self.b, random.randint(2, len(self.b)))
-      
       # Calculate the sum of sampled probabilities of words
-      sum_p_b = 0
-      for i in genes_b:
-        sum_p_b += self.b[genes_b.index(i)]
+      sum_p_b = sum(genes_b)
       # Redistribute the probabilities among the sampled probabilities of words 
-      leftover_p_b = sum_p_b
-      count_b = 0
-      for i in genes_b:
-        # if count_b == len(genes_b) - 1:
-        # # Assign the leftover probability to the last one sampled
-        #  self.b[genes_b.index(i)] = leftover_p_b
-        # else:  
-        # Generate random float between 0 and 1
-        # rb = random.random()
-        rb = random.uniform(0.00000001, 1)
-        # Assign the value in range of sum_p_a to the ith probability of word sampled
-        self.b[genes_b.index(i)] = rb
-        count_b += 1
-      self.b = [float(i)/sum(self.b) for i in self.b]
+      distribute_list = []
+      for i in range(len(genes_b)):
+        distribute_list.append(random.random())
+      distribute_list = [float(i)/sum(distribute_list) for i in distribute_list]
+      for i in range(len(genes_b)):
+        self.b[self.b.index(genes_b[i])] = distribute_list[i]*sum_p_b
+    
     assert self.n == len(self.a), "n: {}, a:{}".format(self.n, len(self.a))
     assert len(self.b) == self.vocab_size, "b: {}, v:{}".format(len(self.b), self.vocab_size)
     new_gene = copy.deepcopy(self)
