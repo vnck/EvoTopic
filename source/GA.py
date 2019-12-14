@@ -1,4 +1,4 @@
-from Gene2 import Gene
+from Gene import Gene
 import random 
 from sklearn import metrics
 from sklearn.metrics import pairwise_distances
@@ -12,10 +12,12 @@ import math
 import pprint
 import numpy as np
 import pyLDAvis.gensim
+import matplotlib.pyplot as plt
 
 
 MUTATION_RATIO = 0.3
 SELECT_RATIO = 0.2
+ELITISM_RATIO = 0.1
 
 class GA:
   """
@@ -78,6 +80,7 @@ class GA:
     Gene.set_vocab_size(self.vocab_size)
     Gene.set_doc_size(self.docs_size)
     self.population = []
+    self.old_population = []
     self.population_size = pop_size
     self.fitness_budget = fitness_budget
     self.fitness = -999.0
@@ -85,6 +88,8 @@ class GA:
     self.iteration = 0
     assert objective == 'coherence' or objective == 'silhouette', "Objective must be either: 'silhouette' or 'cohesion'"
     self.objective = objective
+    self.n_record = []
+    self.score_record = []
 
   def initialise_population(self):
     """Random initialisation of population"""
@@ -97,12 +102,13 @@ class GA:
   def evolve(self):
     print('Evolving Population...')
     while(self.fitness_budget > 0):
+      self.old_population = self.population
+      self.population = []
       self.selection()
       self.crossover()
       self.mutate()
       self.update_population_fitness()
       self.iteration += 1
-      self.fitness_budget -= 1
       # print('{}: Gene.n: {} Gene.a: {} Gene.b: {} '.format(self.iteration, self.bestGene.n, len(self.bestGene.a), len(self.bestGene.b)))
       if self.objective == 'coherence':
         if round(self.fitness,15) == 0:
@@ -114,9 +120,11 @@ class GA:
   def selection(self):
     """Top 20% of population will be selected"""
     # Sort population
-    self.population = sorted(self.population, key=lambda gene: gene.fitness, reverse=True)
+    self.old_population = sorted(self.old_population, key=lambda gene: gene.fitness, reverse=True)
     # Get top 20% from population
-    self.population = self.population[:int(self.population_size*SELECT_RATIO)]
+    self.old_population = self.old_population[:int(self.population_size*SELECT_RATIO)]
+    # elitism keeps top 10% of population
+    self.population = self.old_population[:int(self.population_size*ELITISM_RATIO)]
   
 
   def __crossover2genes(self, gene1, gene2):
@@ -151,10 +159,10 @@ class GA:
 
   def crossover(self):
     """Generate new population using crossover"""
-    while(len(self.population) < self.population_size):
+    while(len(self.population) < self.population_size - 1):
       #Randomly select two genes
       # gene1, gene2 = random.sample(self.population[:int(self.population_size*SELECT_RATIO)], 2)
-      gene1, gene2 = random.sample(self.population, 2)
+      gene1, gene2 = random.sample(self.old_population, 2)
       new_gene = self.__crossover2genes(gene1, gene2)
       self.population.append(new_gene)
 
@@ -164,19 +172,25 @@ class GA:
 
   def update_population_fitness(self):
     # calls calculate_fitness on all genes in the new population and updates the fittest individual
-    pop_fitness = self.population[0].fitness
+    pop_fitness = -99
+    pop_gene = []
     for p in tqdm(self.population):
-      # p.fitness = abs(self.calculate_fitness(p))
-      p.fitness = self.calculate_fitness(p)
-      # Update best fitness
-      if p.fitness > self.fitness:
-        pop_fitness = p.fitness
-        self.bestGene = p
+        score = self.calculate_fitness(p)
+        if score > pop_fitness:
+            pop_fitness = score
+            pop_gene = p
+    self.n_record.append(pop_gene.n)
+    self.score_record.append(pop_fitness)
+    if pop_fitness > self.fitness:
         self.fitness = pop_fitness
+        self.bestGene = pop_gene
+#     else:
+#         self.population = self.old_population
     print('{}: Fitness: {:.15f}, Best Fitness: {:.15f}, Num Topics: {}, Fitness Budget: {} '.format(self.iteration,pop_fitness,self.fitness,self.bestGene.n,self.fitness_budget))
 
   def calculate_fitness(self,gene):
     # Make LDA model
+    self.fitness_budget -= 1
     lda = LdaModel(corpus = self.corpus,
                    id2word = self.dictionary,
                    num_topics = gene.n,
@@ -191,7 +205,8 @@ class GA:
       labels = []
       word_cntLst = []
       if(len(self.corpus)<2):
-        return -1
+        gene.set_fitness(-99)
+        return -99
       for text in self.corpus:
         # Make label list
         topic_probLst = lda.get_document_topics(text)
@@ -199,7 +214,8 @@ class GA:
           print("LDA is fucked")
           if (0 in gene.b) :
             print("calculate fitness: Zero in b")
-          return -1
+          gene.set_fitness(-99)
+          return -99
         labels.append(max(topic_probLst, key=lambda tup: tup[1])[0])
         # Make word count list
         words = [0]*self.vocab_size
@@ -208,9 +224,11 @@ class GA:
         word_cntLst.append(words[:])
       # Calculate silhouette score
       if(len(np.unique(labels)) < 2):
-        return -1
+        gene.set_fitness(-99)
+        return -99
       result = metrics.silhouette_score(word_cntLst, labels, metric='cosine')
-
+    
+    gene.set_fitness(result)
     return result
 
   def get_fittest(self):
@@ -223,3 +241,8 @@ class GA:
                    alpha = self.bestGene.a,
                    eta = self.bestGene.b)
     return lda
+
+  def visualise_progress(self):
+        plt.plot(list(range(len(self.n_record))),self.n_record)
+        plt.plot(list(range(len(self.score_record))),self.score_record)
+        plt.show()

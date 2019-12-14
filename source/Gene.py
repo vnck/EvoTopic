@@ -46,7 +46,7 @@ class Gene:
   """
 
   n = 1
-  N_MIN = 2
+  N_MIN = 4
   N_MAX = 1
   a = []
   b = []
@@ -106,7 +106,7 @@ class Gene:
     doc_size : int
       size of documents of corpus.
     """
-    Gene.N_MAX = int(doc_size/2)
+    Gene.N_MAX = int(doc_size * .2)
 
   def partition_float(self, a, n):
     assert a > 0, "Gene.py partition_float: a should be positive number a= {}".format(a)
@@ -140,7 +140,7 @@ class Gene:
       probs = random.shuffle(probs)
       for i,v in enumerate(sorted(choices)):
         self.b.insert(v,choices[i])
-    elif (random.random() < mr/2):
+    elif (random.random() < mr):
       self.b = np.random.dirichlet(np.ones(Gene.vocab_size), size=1)[0].tolist()
 
     assert self.n == len(self.a), "n: {}, a:{}".format(self.n, len(self.a))
