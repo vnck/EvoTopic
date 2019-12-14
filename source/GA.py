@@ -15,6 +15,9 @@ import pyLDAvis.gensim
 import matplotlib.pyplot as plt
 
 
+import warnings
+warnings.filterwarnings("error")
+
 MUTATION_RATIO = 0.3
 SELECT_RATIO = 0.2
 ELITISM_RATIO = 0.1
@@ -194,8 +197,7 @@ class GA:
     lda = LdaModel(corpus = self.corpus,
                    id2word = self.dictionary,
                    num_topics = gene.n,
-                   alpha = gene.a,
-                   eta = gene.b)
+                   alpha = gene.a)
     
     if self.objective == 'coherence':
       cm = CoherenceModel(model=lda, corpus=self.corpus, coherence='u_mass')
@@ -212,6 +214,9 @@ class GA:
         topic_probLst = lda.get_document_topics(text)
         if (len(topic_probLst) == 0):
           print("LDA is fucked")
+          print("GA.py gene.a = ", gene.a)
+          if (0 in gene.a) :
+            print("calculate fitness: Zero in a")
           if (0 in gene.b) :
             print("calculate fitness: Zero in b")
           gene.set_fitness(-99)
