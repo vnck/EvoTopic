@@ -6,11 +6,12 @@ from gensim.test.utils import common_texts
 from gensim.corpora.dictionary import Dictionary
 from gensim.models import LdaModel
 import gensim
-from tqdm import tqdm
+from tqdm.notebook import tqdm
 from gensim.models.coherencemodel import CoherenceModel
 import math
 import pprint
 import numpy as np
+import copy
 import pyLDAvis.gensim
 import matplotlib.pyplot as plt
 
@@ -105,7 +106,7 @@ class GA:
   def evolve(self):
     print('Evolving Population...')
     while(self.fitness_budget > 0):
-      self.old_population = self.population
+      self.old_population = copy.deepcopy(self.population)
       self.population = []
       self.selection()
       self.crossover()
@@ -127,7 +128,7 @@ class GA:
     # Get top 20% from population
     self.old_population = self.old_population[:int(self.population_size*SELECT_RATIO)]
     # elitism keeps top 10% of population
-    self.population = self.old_population[:int(self.population_size*ELITISM_RATIO)]
+    self.population = self.old_population[:int(len(self.old_population)*ELITISM_RATIO)]
   
 
   def __crossover2genes(self, gene1, gene2):
@@ -162,7 +163,7 @@ class GA:
 
   def crossover(self):
     """Generate new population using crossover"""
-    while(len(self.population) < self.population_size - 1):
+    while(len(self.population) < self.population_size):
       #Randomly select two genes
       # gene1, gene2 = random.sample(self.population[:int(self.population_size*SELECT_RATIO)], 2)
       gene1, gene2 = random.sample(self.old_population, 2)

@@ -106,7 +106,7 @@ class Gene:
     doc_size : int
       size of documents of corpus.
     """
-    Gene.N_MAX = int(doc_size * .2)
+    Gene.N_MAX = max(int(doc_size * .2),50)
 
   def partition_float(self, a, n):
     assert a > 0, "Gene.py partition_float: a should be positive number a= {}".format(a)
@@ -125,21 +125,21 @@ class Gene:
       if self.n != len(self.a):
         self.a = np.random.dirichlet(np.ones(self.n), size=1)[0].tolist()
     elif (random.random() < mr):
-      choices = random.sample([i for i in range(len(self.a))], random.randrange(int(len(self.a)/2)))
+      choices = random.sample([i for i in range(len(self.a))], random.randrange(2,len(self.a),1))
       probs = []
       for i in sorted(choices, reverse = True):
         probs.append(self.a.pop(i))
-      probs = random.shuffle(probs)
+      probs = random.sample(probs, len(probs))
       for i,v in enumerate(sorted(choices)):
-        self.a.insert(v,choices[i])
+        self.a.insert(v,probs[i])
     if (random.random() < mr):
-      choices = random.sample([i for i in range(len(self.b))], random.randrange(int(len(self.b)/2)))
+      choices = random.sample([i for i in range(len(self.b))], random.randrange(2,len(self.b),1))
       probs = []
       for i in sorted(choices, reverse = True):
         probs.append(self.b.pop(i))
-      probs = random.shuffle(probs)
+      probs = random.sample(probs, len(probs))
       for i,v in enumerate(sorted(choices)):
-        self.b.insert(v,choices[i])
+        self.b.insert(v,probs[i])
     elif (random.random() < mr):
       self.b = np.random.dirichlet(np.ones(Gene.vocab_size), size=1)[0].tolist()
 
