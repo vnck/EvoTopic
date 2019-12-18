@@ -7,3 +7,6 @@ nltk
 tqdm
 beautifulsoup4
 gensim
+csv
+requests
+contextlib

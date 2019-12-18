@@ -40,8 +40,8 @@ def get_title_description(url):
         soup = BeautifulSoup(response, "html.parser")
         #get title of the issue
         title = soup.title.get_text()
+        #create a list of titles
         title_desc_small_list.append(title)
-
         bottom_description = soup.find_all('task-lists')
         description = bottom_description[0].get_text().replace("\n", " ")
         title_desc_small_list.append(description)
@@ -68,15 +68,18 @@ def write_to_csv(big_list):
 def get_all_issues():
     
     all_links = []
+    #the range here changes depending on the number of pages in the github issue page
+    #iterates through all the pages in the facebook react issues.
     for i in range(1,313):
+    	#you can just change this url to any other url you want to web scrape from.
         url = "https://github.com/facebook/react/issues?page="+str(i)+"&q=is%3Aissue+is%3Aclosed"
         print(url)
         response = get_html(url)
 
         #list to store links
         if response is not None:
-            soup = BeautifulSoup(response, "html.parser")
-            #look for data-hovercard-type="issue". dk if it works.
+            soup = BeautifulSoup(response, "html.parser") #Parse html file
+            #accessing the data that we interested in
             links = soup.find_all('a', attrs={'data-hovercard-type':'issue'})
             for link in links:
                 all_links.append(link.get('href'))

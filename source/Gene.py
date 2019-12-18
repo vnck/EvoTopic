@@ -114,15 +114,19 @@ class Gene:
       return [a]
     pieces = []
     for i in range(n-1):
+      # Assign random portion of the leftover probability to p
       p = round(random.uniform(0.00001,a-sum(pieces)-0.00001),5)
       pieces.append(p)
+    # Append pieces with whatever probability left as the last element to ensure probability sum to 1
     pieces.append(a-sum(pieces))
     return pieces
 
   def mutate(self, mr):
     if (random.random() < mr):
       self.n = random.randint(self.N_MIN, self.N_MAX)
+      # Ensure n and the size of a are the same
       if self.n != len(self.a):
+        # Extract random values from dirichlet distribution for n times and form a.
         self.a = np.random.dirichlet(np.ones(self.n), size=1)[0].tolist()
     elif (random.random() < mr):
       choices = random.sample([i for i in range(len(self.a))], random.randrange(2,len(self.a),1))
@@ -135,12 +139,14 @@ class Gene:
     if (random.random() < mr):
       choices = random.sample([i for i in range(len(self.b))], random.randrange(2,len(self.b),1))
       probs = []
+      # Pop elements of choices in decreasing order and append it to probs list
       for i in sorted(choices, reverse = True):
         probs.append(self.b.pop(i))
       probs = random.sample(probs, len(probs))
       for i,v in enumerate(sorted(choices)):
         self.b.insert(v,probs[i])
     elif (random.random() < mr):
+      # Extract random values from dirichlet distribution for Gene.vocab_size times and form b.
       self.b = np.random.dirichlet(np.ones(Gene.vocab_size), size=1)[0].tolist()
 
     assert self.n == len(self.a), "n: {}, a:{}".format(self.n, len(self.a))
